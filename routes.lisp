@@ -15,6 +15,26 @@
   "Finds the route with the path in the given list"
   (find path list :test #'string= :key #'route-path))
 
+
+(defun insert-into-position (value list &key (test #'>) (key #'identity))
+  "Insert the value into the list at the position after test starts returning true"
+  (if list
+      (let ((inserted))
+        (loop for item in list
+           when (and (not inserted)
+                     (unless (funcall test 
+                                      (funcall key value) 
+                                      (funcall key item))
+                       ;; Time to insert. 
+                       ;; Set the flag to ensure we only do it once.
+                       (setf inserted t)))
+           collect value
+           collect item))
+      (list value)))
+
+(defmethod num-segments ((route route))
+  (length (split-route (route-path route))))
+
 (defmethod push-route ((class froute-class))
   "Pushes a new route into our route tree"
   (labels ((recurse (routes list)
@@ -24,7 +44,9 @@
                     (route (or (find-route head-path list)
                                (let ((new-route (make-route :path head-path
                                                             :class head)))
-                                 (push new-route list)
+                                 (setf list (insert-into-position new-route list
+                                                                  :key #'num-segments
+                                                                  :test #'<))
                                  new-route))))
                
                (when tail
