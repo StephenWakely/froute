@@ -1,3 +1,119 @@
-Routing class that takes advantage of the MOP.
+* Froute - An Http routing class that takes advantage of the MOP
+  
+Froute is an Http routing metaclass that uses the Metaobject Protocol that lets you take advantage of CLOS to flexibly build up your Http routes.
 
-* TODO Add a way to delete routes.
+Currently works with Hunchentoot, but it is designed to be straightforward to work with other web servers.
+
+* Defining a route
+
+To define a route, define a class with a froute-class metaclass and include a :route property to indicate the path the route is invoked with.
+
+#+BEGIN_SRC lisp
+
+(defclass shporgle ()
+  ()
+  (:metaclass froute:froute-class)
+  (:route "/shporgle"))
+
+#+END_SRC
+
+#+RESULTS:
+: #<FROUTE-CLASS FROUTE::SHPORGLE>
+
+When the route is invoked a run method is called with an instance of this class together with the method.
+
+#+BEGIN_SRC lisp
+
+(defmethod froute:run ((r shporgle) (method (eql :get)))
+  (setf (hunchentoot:content-type*) "text/html")
+  "<html><h1>Shporgle!</h1></html>")
+
+#+END_SRC
+
+#+RESULTS:
+: #<STANDARD-METHOD FROUTE:RUN (SHPORGLE (EQL :GET)) {1006536BA3}>
+
+
+An acceptor is provided to interface between Froute and Hunchentoot. To set it up call the following :
+
+#+BEGIN_SRC lisp
+(defvar *app* nil)
+
+(defun start-server ()
+  (setf *app* (make-instance 'froute-hunchentoot:froute-acceptor :port 4343))
+  (hunchentoot:start *app*))
+
+;; Start the server
+(start-server)
+
+#+END_SRC
+
+* Parameters
+
+  You can insert parameters into the route. The values of the parameters will be inserted into the slots of the invoked class.
+  
+#+BEGIN_SRC lisp
+(defclass goblins ()
+  ((id :reader goblin-id))
+  (:metaclass froute:froute-class)
+  (:route "/goblin/:id"))
+
+(defmethod froute:run ((g goblins) method)
+  (setf (hunchentoot:content-type*) "text/html")
+  (format nil "<h1>I am goblin ~A</h1>" (goblin-id g)))
+
+#+END_SRC
+
+#+RESULTS:
+: #<STANDARD-METHOD FROUTE:RUN (GOBLINS T) {1006ABA323}>
+
+#+BEGIN_SRC 
+% curl localhost:4343/goblin/groove                          
+<h1>I am goblin groove</h1>%     
+#+END_SRC
+  
+
+If you want the parameter to consume the rest of the route, append it with an asterix. This is useful for when you want to create the handler for your static files :
+
+#+BEGIN_SRC lisp
+
+(defclass static-handler ()
+  ((path :accessor handler-path))
+  (:metaclass froute:froute-class)
+  (:route "/public/:path*"))
+
+(defmethod froute:run ((r static-handler) (method (eql :get)))
+  (hunchentoot:handle-static-file (resource-path (format nil "assets/~A" (handler-path r)))))
+
+#+END_SRC
+
+* Using CLOS
+
+
+You can use inheritance to build up your route :
+
+#+BEGIN_SRC lisp
+  (defclass api ()
+    ((api :reader api))
+    (:metaclass froute:froute-class)
+    (:route "/api/:api"))
+
+  (defclass norgle (api)
+    ((id :reader norgle-id))
+    (:metaclass froute:froute-class)
+    (:route "/norgle/:id"))
+
+  (defmethod froute:run ((n norgle) method)
+    (format nil "Norgle ~A from api ~A" (norgle-id n) (api n)))
+
+#+END_SRC
+
+#+RESULTS:
+: #<STANDARD-METHOD FROUTE:RUN (NORGLE T) {1002EA0B43}>
+
+#+BEGIN_SRC 
+% curl localhost:4343/api/onk/norgle/splorge
+Norgle splorge from api onk
+#+END_SRC
+
+** TODO There is a bug here. If the slot name is the same, the inherited one gets clobbered with the parents value...
