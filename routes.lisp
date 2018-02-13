@@ -17,20 +17,13 @@
 
 
 (defun insert-into-position (value list &key (test #'>) (key #'identity))
-  "Insert the value into the list at the position after test starts returning true"
-  (if list
-      (let ((inserted))
-        (loop for item in list
-           when (and (not inserted)
-                     (unless (funcall test 
-                                      (funcall key value) 
-                                      (funcall key item))
-                       ;; Time to insert. 
-                       ;; Set the flag to ensure we only do it once.
-                       (setf inserted t)))
-           collect value
-           collect item))
-      (list value)))
+  "Insert the value into the list where every item that fails the test preceeds the value
+and every item that passes the test follows."
+  (flet ((test-on-value (item)
+           (funcall test (funcall key value) item)))
+    `(,@(remove-if-not #'test-on-value list :key key)
+        ,value
+        ,@(remove-if #'test-on-value list :key key))))
 
 (defmethod num-segments ((route route))
   (length (split-route (route-path route))))
