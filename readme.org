@@ -116,4 +116,24 @@ You can use inheritance to build up your route :
 Norgle splorge from api onk
 #+END_SRC
 
-** TODO There is a bug here. If the slot name is the same, the inherited one gets clobbered with the parents value...
+Note that if you have a slot with the same name as a slot in a class you inherit from, they are the same slot. So you should ensure you keep your slot name distinct.
+
+You can inherit from classes that do not have `froute-class` as a metaclass. They do not affect the route, but you can use these classes to wrap the request handling.
+
+Say you had a page that required authentication headers.
+
+
+#+BEGIN_SRC lisp
+
+  (defclass require-authentication () ())
+
+  (defmethod run :around ((r require-authentication) method)
+    (if )
+
+    
+    )
+
+
+
+
+#+END_SRC
