@@ -2,7 +2,13 @@
   
 Froute is an Http routing metaclass that uses the Metaobject Protocol that lets you take advantage of CLOS to flexibly build up your Http routes.
 
-Currently works with Hunchentoot, but it is designed to be straightforward to work with other web servers.
+Currently works with Hunchentoot, but it is designed to be straightforward to work with other web servers, once the adaptors are developed.
+
+Froute has been tested on
+- SBCL
+- CCL
+  
+but should hopefully work on any lisp that supports the Metaobject Protocol.
 
 * Defining a route
 
@@ -47,7 +53,6 @@ An acceptor is provided to interface between Froute and Hunchentoot. To set it u
 (start-server)
 
 #+END_SRC
-
 * Parameters
 
   You can insert parameters into the route. The values of the parameters will be inserted into the slots of the invoked class.
@@ -128,12 +133,31 @@ Say you had a page that required authentication headers.
   (defclass require-authentication () ())
 
   (defmethod run :around ((r require-authentication) method)
-    (if )
+    (multiple-value-bind (user password) (hunchentoot:authorization)
+      (if (and (string= user "headgoblin")
+               (string= password "s3cr3t"))
+          (call-next-method)
+          "Access Denied")))
 
-    
-    )
+  (defclass goblins (require-authentication)
+    ()
+    (:metaclass froute:froute-class)
+    (:route "/goblins"))
+
+  (defmethod run ((r goblins) method)
+    "Hurrah")
+
+#+END_SRC
+
+#+RESULTS:
+: #<COMMON-LISP:STANDARD-METHOD RUN (GOBLINS T)>
 
 
+When the route inherits from `require-authentication` it implicitly requires the authentication check before it will be invoked. 
 
-
+#+BEGIN_SRC 
+% curl localhost:4343/goblins          
+Access Denied%                   
+% curl --user headgoblin:s3cr3t localhost:4343/goblins          
+Hurrah%  
 #+END_SRC
