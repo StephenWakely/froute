@@ -16,6 +16,7 @@ Load froute.asd and then run
 
 #+BEGIN_SRC lisp
 (ql:quickload 'froute)
+(ql:quickload 'froute/hunchentoot)
 #+END_SRC
 
 If you want to test the library
