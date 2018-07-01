@@ -10,6 +10,21 @@ Froute has been tested on
   
 but should hopefully work on any lisp that supports the Metaobject Protocol.
 
+* Installing
+
+Load froute.asd and then run
+
+#+BEGIN_SRC lisp
+(ql:quickload 'froute)
+#+END_SRC
+
+If you want to test the library
+
+#+BEGIN_SRC lisp
+(ql:quickload 'froute/test)
+(asdf:operate 'asdf:test-op 'froute)
+#+END_SRC
+
 * Defining a route
 
 To define a route, define a class with a froute-class metaclass and include a :route property to indicate the path the route is invoked with.

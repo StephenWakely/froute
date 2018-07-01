@@ -7,10 +7,11 @@
 
 (defsystem :froute
   :depends-on (:closer-mop :cl-ppcre)
-  :components ((:file "package")
-               (:file "froute-class" :depends-on ("package"))
-               (:file "routes" :depends-on ("package" "froute-class"))
-               (:file "invoke-route" :depends-on ("package" "routes")))
+  :components ((:module "src"
+                        :components ((:file "package")
+                                     (:file "froute-class" :depends-on ("package"))
+                                     (:file "routes" :depends-on ("package" "froute-class"))
+                                     (:file "invoke-route" :depends-on ("package" "routes")))))
   :in-order-to ((test-op (test-op :froute/test))))
 
 (defsystem :froute/hunchentoot
