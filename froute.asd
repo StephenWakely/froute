@@ -6,6 +6,10 @@
 
 
 (defsystem :froute
+  :author "Fungus Humungus"
+  :description "An Http routing class that takes advantage of the MOP"
+  :license "MIT"
+  :version "0.1"
   :depends-on (:closer-mop :cl-ppcre)
   :components ((:module "src"
                         :components ((:file "package")
@@ -15,12 +19,19 @@
   :in-order-to ((test-op (test-op :froute/test))))
 
 (defsystem :froute/hunchentoot
+  :author "Fungus Humungus"
+  :description "An acceptor for Hunchentoot that dispatches requests to Froute."
+  :license "MIT"
+  :version "0.1"
   :depends-on (:hunchentoot :froute)
   :components ((:module "hunchentoot"
                         :components ((:file "package")
                                      (:file "acceptor" :depends-on ("package"))))))
 
 (defsystem :froute/test
+  :author "Fungus Humungus"
+  :description "Test the Froute library."
+  :license "MIT"
   :depends-on (:froute :lisp-unit)
   :components ((:module "tests"
                         :components ((:file "package")
